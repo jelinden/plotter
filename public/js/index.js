@@ -1,7 +1,7 @@
 window.onload = function() {
   writeState("document loaded");
   if ('WebSocket' in window) {
-    var connection = new WebSocket('ws://192.168.0.5:7000/ws');
+    var connection = new WebSocket('ws://uutispuro.fi:7000/ws');
     connection.onopen = function() {
       writeState("connection open");
     }
