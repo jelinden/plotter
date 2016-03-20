@@ -1,34 +1,45 @@
 window.onload = function() {
   writeState("document loaded");
+  var ws = null;
+
   if ('WebSocket' in window) {
-    var connection = new WebSocket('ws://uutispuro.fi:7000/ws');
-    connection.onopen = function() {
-      writeState("connection open");
+    function start() {
+      ws = new WebSocket('ws://uutispuro.fi:7000/ws');
+      ws.onopen = function() {
+        writeState("connection open");
+      }
+      ws.onclose = function() {
+        writeState("connection closed");
+      }
+      ws.onerror = function(error) {
+        writeState("error: " + error);
+      }
+      ws.onmessage = function(e) {
+        var msg = JSON.parse(e.data);
+        writeState("got a message");
+        ws.send("ack");
+        arr = ['per minute'];
+        Object.keys(msg).map(function(key, i) {
+          if (i == 0) {
+            arr.push(0);
+          } else {
+            arr.push(msg[key]);
+          }
+        });
+        chart.load({
+          columns: [
+            arr
+          ]
+        });
+      }
     }
-    connection.onclose = function() {
-      writeState("connection closed");
+    function check() {
+      if (!ws || ws.readyState === 3) {
+        start();
+      }
     }
-    connection.onerror = function(error) {
-      writeState("error: " + error);
-    }
-    connection.onmessage = function(e) {
-      var msg = JSON.parse(e.data);
-      writeState("got a message");
-      connection.send("ack");
-      arr = ['per minute'];
-      Object.keys(msg).map(function(key, i) {
-        if (i == 0) {
-          arr.push(0);
-        } else {
-          arr.push(msg[key]);
-        }
-      });
-      chart.load({
-        columns: [
-          arr
-        ]
-      });
-    }
+    start();
+    setInterval(check, 5000);
   } else {
     writeState("You're browser does not support websockets.");
   }
