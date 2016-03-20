@@ -9,12 +9,15 @@ window.onload = function() {
         writeState("connection open");
       }
       ws.onclose = function() {
+        document.getElementById("state").className = "red";
         writeState("connection closed");
       }
       ws.onerror = function(error) {
+        document.getElementById("state").className = "red";
         writeState("error: " + error);
       }
       ws.onmessage = function(e) {
+        document.getElementById("state").className = "green";
         var msg = JSON.parse(e.data);
         writeState("got a message");
         ws.send("ack");

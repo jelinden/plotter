@@ -20,6 +20,18 @@ h1 {
 	width: 330px;
 	height: 220px;
 }
+.red {
+	background-color:red;
+	color:white;
+	padding: 3px;
+	max-width: 330px;
+}
+.green {
+	background-color:green;
+	color:white;
+	padding: 3px;
+	max-width: 330px;
+}
 .c3 svg {
   font: 10px sans-serif;
 }
