@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
 	"golang.org/x/net/websocket"
+	"log"
 	"time"
 )
 
@@ -24,8 +25,6 @@ func main() {
 	e.Get("/ws", standard.WrapHandler(websocket.Handler(func(ws *websocket.Conn) {
 		defer ws.Close()
 		for range time.Tick(time.Second) {
-			fmt.Println("sending message to", ws.Request().RemoteAddr)
-
 			clicks, err := json.Marshal(app.GetList())
 			if err != nil {
 				fmt.Println(err)
@@ -35,14 +34,13 @@ func main() {
 				fmt.Printf("client closed connection %s\n", err)
 				break
 			}
-
 			msg := ""
 			err = websocket.Message.Receive(ws, &msg)
 			if err != nil {
 				fmt.Printf("client closed connection %s\n", err)
 				break
 			}
-			fmt.Println(msg)
+			log.Println("sent message to", ws.Request().RemoteAddr, msg)
 		}
 		ws.Close()
 	})))
