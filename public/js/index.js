@@ -2,6 +2,7 @@ var chart, pi1, pi2, pi3, interval;
 
 window.onload = function() {
   writeState("document loaded");
+
   var ws = null;
   chart = c3div('minutes', '', 'chart');
   pi1 = c3div('hours', '', 'pi1');
@@ -9,6 +10,14 @@ window.onload = function() {
   pi3 = c3div('hours', '', 'pi3');
 
   if ('WebSocket' in window) {
+
+    window.onfocus = function() {
+      start();
+    };
+    window.onblur = function() {
+      ws.close();
+    };
+
     function start() {
       ws = new WebSocket('ws://uutispuro.fi:7000/ws');
       ws.onopen = function() {
@@ -24,9 +33,7 @@ window.onload = function() {
       }
       ws.onerror = function(error) {
         document.getElementById("state").className = "red";
-        ws.close();
         writeState("error: " + error);
-        interval = setInterval(check, 5000);
       }
       ws.onmessage = function(e) {
         var msg = JSON.parse(e.data);
