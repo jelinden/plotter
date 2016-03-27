@@ -10,11 +10,13 @@ window.onload = function() {
   pi3 = c3div('hours', '', 'pi3');
 
   if ('WebSocket' in window) {
-
+    var isOnFocus = true;
     window.onfocus = function() {
+      isOnFocus = true;
       start();
     };
     window.onblur = function() {
+      isOnFocus = false;
       ws.close();
     };
 
@@ -27,9 +29,10 @@ window.onload = function() {
       }
       ws.onclose = function() {
         document.getElementById("state").className = "red";
-        ws.close();
         writeState("connection closed");
-        interval = setInterval(check, 5000);
+        if (isOnFocus) {
+          interval = setInterval(check, 5000);
+        }
       }
       ws.onerror = function(error) {
         document.getElementById("state").className = "red";
