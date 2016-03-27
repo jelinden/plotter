@@ -25,7 +25,10 @@ func main() {
 	e.Get("/ws", standard.WrapHandler(websocket.Handler(func(ws *websocket.Conn) {
 		defer ws.Close()
 		for range time.Tick(time.Second) {
-			clicks, err := json.Marshal(app.GetList())
+			allClicks := app.AllClicks{}
+			allClicks.ByServer = app.GetInstanceGrouppedList()
+			allClicks.All = app.GetList()
+			clicks, err := json.Marshal(allClicks)
 			if err != nil {
 				fmt.Println(err)
 			}

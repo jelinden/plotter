@@ -4,6 +4,10 @@ html, body {
 h1 {
 	font-size:20px;
 }
+h2 {
+    padding-top: 40px;
+    clear: left;
+}
 #top {
 	background-color: #1E1E1E;
 	color: white;
@@ -19,6 +23,19 @@ h1 {
 #chart {
 	width: 330px;
 	height: 220px;
+}
+.picontainer {
+	float: left;
+	width: 340px;
+}
+#pi1, #pi2, #pi3 {
+	padding-right: 10px;
+	height: 220px;
+	min-width: 330px;
+	max-width: 330px;
+}
+svg {
+	overflow: visible !important;
 }
 .red {
 	background-color:red;

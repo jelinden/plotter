@@ -26,9 +26,10 @@ func GetClicks() {
 		msg := <-ch
 		var data map[string]interface{}
 		if err := json.Unmarshal(msg.Data, &data); err != nil {
-			panic(err)
+			fmt.Println(err)
+		} else {
+			//fmt.Println(data)
+			Save(data)
 		}
-		//fmt.Println(data)
-		Save(data)
 	}
 }

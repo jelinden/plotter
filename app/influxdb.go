@@ -19,7 +19,7 @@ var influx Influx
 func NewInflux() {
 	i := &Influx{}
 	c, err := client.NewHTTPClient(client.HTTPConfig{
-		Addr: "http://192.168.0.5:8086",
+		Addr: "http://localhost:8086",
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -39,7 +39,7 @@ func Save(click map[string]interface{}) {
 	}
 
 	stamp, _ := time.Parse("2006-01-02 15:04:05 -0700 MST", click["time"].(string))
-	pt, err := client.NewPoint("click", map[string]string{}, click, stamp)
+	pt, err := client.NewPoint("click", mapToStringMap(click), click, stamp)
 	if err != nil {
 		log.Println(err)
 	}
@@ -68,6 +68,17 @@ func GetList() map[string]int64 {
 	return fields
 }
 
+func GetInstanceGrouppedList() []client.Result {
+	q := client.NewQuery("select count(localIP) from click where time > now() - 1d group by time(1h),localIP fill(0)", "plotter", "s")
+	response, err := influx.Conn.Query(q)
+	if err != nil || response.Error() != nil {
+		fmt.Println(err)
+	} else {
+		return response.Results
+	}
+	return []client.Result{}
+}
+
 func convertType(val interface{}) int64 {
 	var t int64
 	var err error
@@ -79,4 +90,15 @@ func convertType(val interface{}) int64 {
 		}
 	}
 	return t
+}
+
+func mapToStringMap(click map[string]interface{}) map[string]string {
+	m := make(map[string]string)
+	for key, value := range click {
+		switch value := value.(type) {
+		case string:
+			m[key] = value
+		}
+	}
+	return m
 }

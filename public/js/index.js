@@ -1,16 +1,25 @@
+var chart, pi1, pi2, pi3, interval;
+
 window.onload = function() {
   writeState("document loaded");
   var ws = null;
+  chart = c3div('minutes', '', 'chart');
+  pi1 = c3div('hours', '', 'pi1');
+  pi2 = c3div('hours', '', 'pi2');
+  pi3 = c3div('hours', '', 'pi3');
 
   if ('WebSocket' in window) {
     function start() {
       ws = new WebSocket('ws://uutispuro.fi:7000/ws');
       ws.onopen = function() {
+        clearInterval(interval);
         writeState("connection open");
       }
       ws.onclose = function() {
         document.getElementById("state").className = "red";
+        ws = null;
         writeState("connection closed");
+        interval = setInterval(check, 5000);
       }
       ws.onerror = function(error) {
         document.getElementById("state").className = "red";
@@ -21,19 +30,14 @@ window.onload = function() {
         var msg = JSON.parse(e.data);
         writeState("got a message");
         ws.send("ack");
-        arr = ['per minute'];
-        Object.keys(msg).map(function(key, i) {
-          if (i == 0) {
-            arr.push(0);
-          } else {
-            arr.push(msg[key]);
-          }
-        });
-        chart.load({
-          columns: [
-            arr
-          ]
-        });
+        loadChart(chart, chartArrWithTitle('All per minute', msg.All), 'All per minute', dateArr(msg.All));
+        var series = msg.ByServer[0];
+        title1 = "Rasberry Pi " + series.Series[0].tags.localIP;
+        title2 = "Rasberry Pi " + series.Series[1].tags.localIP;
+        title3 = "Rasberry Pi " + series.Series[2].tags.localIP;
+        loadChart(pi1, piArrWithTitle(title1, series.Series[0].values), title1, piDateArr(series.Series[0].values));
+        loadChart(pi2, piArrWithTitle(title2, series.Series[1].values), title2, piDateArr(series.Series[1].values));
+        loadChart(pi3, piArrWithTitle(title3, series.Series[2].values), title3, piDateArr(series.Series[2].values));
       }
     }
     function check() {
@@ -42,34 +46,86 @@ window.onload = function() {
       }
     }
     start();
-    setInterval(check, 5000);
   } else {
     writeState("You're browser does not support websockets.");
   }
 }
 
-var chart = c3.generate({
-  data: {
-    columns: [
-      ['per minute', 0],
-    ],
-    type: 'bar'
-  },
-  bar: {
-    width: {
-      ratio: 1.0
+function dateArr(arr) {
+  var dateArr = ['date'];
+  Object.keys(arr).map(function(key) {
+    dateArr.push(new Date(key * 1000));
+  });
+  return dateArr;
+}
+
+function piDateArr(arr) {
+  var dateArr = ['date'];
+  Object.keys(arr).map(function(key) {
+    dateArr.push(new Date(arr[key][0] * 1000));
+  });
+  return dateArr;
+}
+
+function chartArrWithTitle(title, arr) {
+  var withTitle = [title];
+  Object.keys(arr).map(function(key, i) {
+    if (i == 0) {
+      withTitle.push(0);
+    } else {
+      withTitle.push(arr[key]);
     }
-  },
-  axis: {
-    x: {
-      label: 'minutes',
-      inverted: true
+  });
+  return withTitle;
+}
+
+function piArrWithTitle(title, arr) {
+  var withTitle = [title];
+  Object.keys(arr).map(function(key, i) {
+    if (i == 0) {
+      withTitle.push(0);
+    } else {
+      withTitle.push(arr[key][1]);
+    }
+  });
+  return withTitle;
+}
+
+function c3div(label, column, bindTo) {
+  return c3.generate({
+    bindto: document.getElementById(bindTo),
+    data: {
+      x: 'date',
+      columns: [
+        column === '' ? [0] : [column, 0],
+      ],
+      type: 'bar',
+      colors: {
+        'All per minute': '#ffad33'
+      },
     },
-    y: {
-      label: 'page loads'
+    bar: {
+      width: {
+        ratio: 1.0
+      }
+    },
+    axis: {
+      x: {
+        type: 'timeseries',
+        //localtime: false,
+        tick: {
+          format: bindTo === 'chart' ? '%H:%M' : '%H:%M',
+          count: bindTo === 'chart' ? 0 : 0,
+          rotate: bindTo === 'chart' ? 0 : 40
+        },
+        label: label
+      },
+      y: {
+        label: 'page loads'
+      }
     }
-  }
-});
+  });
+}
 
 function writeState(stateContent) {
   var date = new Date();
@@ -78,4 +134,13 @@ function writeState(stateContent) {
     date.getMonth() + '.' +
     date.getFullYear() + " " +
     date.toTimeString().split(' ')[0] + " " + stateContent;
+}
+
+function loadChart(element, arr, title, dateArr) {
+  element.load({
+    x: 'date',
+    columns: [
+      dateArr, arr
+    ]
+  });
 }
