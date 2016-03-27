@@ -12,11 +12,13 @@ window.onload = function() {
     function start() {
       ws = new WebSocket('ws://uutispuro.fi:7000/ws');
       ws.onopen = function() {
+        document.getElementById("state").className = "green";
         clearInterval(interval);
         writeState("connection open");
       }
       ws.onclose = function() {
         document.getElementById("state").className = "red";
+        ws.close();
         ws = null;
         writeState("connection closed");
         interval = setInterval(check, 5000);
@@ -26,7 +28,6 @@ window.onload = function() {
         writeState("error: " + error);
       }
       ws.onmessage = function(e) {
-        document.getElementById("state").className = "green";
         var msg = JSON.parse(e.data);
         writeState("got a message");
         ws.send("ack");
@@ -40,11 +41,13 @@ window.onload = function() {
         loadChart(pi3, piArrWithTitle(title3, series.Series[2].values), title3, piDateArr(series.Series[2].values));
       }
     }
+
     function check() {
       if (!ws || ws.readyState === 3) {
         start();
       }
     }
+
     start();
   } else {
     writeState("You're browser does not support websockets.");
