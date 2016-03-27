@@ -19,13 +19,14 @@ window.onload = function() {
       ws.onclose = function() {
         document.getElementById("state").className = "red";
         ws.close();
-        ws = null;
         writeState("connection closed");
         interval = setInterval(check, 5000);
       }
       ws.onerror = function(error) {
         document.getElementById("state").className = "red";
+        ws.close();
         writeState("error: " + error);
+        interval = setInterval(check, 5000);
       }
       ws.onmessage = function(e) {
         var msg = JSON.parse(e.data);
