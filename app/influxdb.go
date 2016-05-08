@@ -58,10 +58,12 @@ func GetList() map[string]int64 {
 		fmt.Println(err)
 	} else {
 		for _, result := range response.Results {
-			for _, value := range result.Series[0].Values {
-				id := strconv.FormatInt(convertType(value[0]), 10)
-				val := convertType(value[1])
-				fields[id] = val
+			if len(result.Series) > 0 {
+				for _, value := range result.Series[0].Values {
+					id := strconv.FormatInt(convertType(value[0]), 10)
+					val := convertType(value[1])
+					fields[id] = val
+				}
 			}
 		}
 	}
